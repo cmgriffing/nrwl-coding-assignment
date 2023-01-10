@@ -1,1 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles */
+
+/* Utility classes */
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
