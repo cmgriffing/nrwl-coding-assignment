@@ -8,17 +8,26 @@ export function CreateTicketForm({ createTicket }: CreateTicketForm) {
   const [description, setDescription] = useState('');
   const [creatingTicket, setCreatingTicket] = useState(false);
 
-  const submitForm = useCallback(async () => {
-    setCreatingTicket(true);
-    try {
-      await createTicket(description);
-      setDescription('');
-    } catch (e: unknown) {
-      // show error
-    } finally {
-      setCreatingTicket(false);
-    }
-  }, [description, createTicket]);
+  const submitForm = useCallback<React.FormEventHandler<HTMLFormElement>>(
+    async (event) => {
+      event.preventDefault();
+
+      if (!description) {
+        return;
+      }
+
+      setCreatingTicket(true);
+      try {
+        await createTicket(description);
+        setDescription('');
+      } catch (e: unknown) {
+        // show error
+      } finally {
+        setCreatingTicket(false);
+      }
+    },
+    [description, createTicket]
+  );
 
   return (
     <div>
@@ -35,7 +44,7 @@ export function CreateTicketForm({ createTicket }: CreateTicketForm) {
           ></textarea>
         </div>
         {/* type is submit by default, but I like to be explicit about it */}
-        <button type="submit" disabled={creatingTicket}>
+        <button type="submit" disabled={!description || creatingTicket}>
           {!creatingTicket ? 'Create Ticket' : 'Creating...'}
         </button>
       </form>
