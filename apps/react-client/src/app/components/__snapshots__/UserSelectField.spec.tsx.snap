@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders a list with selected user 1`] = `
+<DocumentFragment>
+  <select>
+    <option>
+      Unassigned
+    </option>
+    <option
+      value="1"
+    >
+      Alice
+    </option>
+    <option
+      value="2"
+    >
+      Bob
+    </option>
+    <option
+      value="3"
+    >
+      Chris
+    </option>
+    <option
+      value="4"
+    >
+      Daisy
+    </option>
+    <option
+      value="5"
+    >
+      Ed
+    </option>
+  </select>
+</DocumentFragment>
+`;
+
+exports[`renders a list without selected user 1`] = `
+<DocumentFragment>
+  <select>
+    <option>
+      Unassigned
+    </option>
+    <option
+      value="1"
+    >
+      Alice
+    </option>
+    <option
+      value="2"
+    >
+      Bob
+    </option>
+    <option
+      value="3"
+    >
+      Chris
+    </option>
+    <option
+      value="4"
+    >
+      Daisy
+    </option>
+    <option
+      value="5"
+    >
+      Ed
+    </option>
+  </select>
+</DocumentFragment>
+`;
+
+exports[`renders an empty list 1`] = `[Function]`;

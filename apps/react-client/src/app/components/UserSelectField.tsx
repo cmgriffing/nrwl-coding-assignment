@@ -27,8 +27,10 @@ export function UserSelectField({
       }}
     >
       <option>{UNASSIGNED}</option>
-      {users.map((user) => (
-        <option value={user.id}>{user.name}</option>
+      {users.map(({ id, name }) => (
+        <option key={id} value={id}>
+          {name}
+        </option>
       ))}
     </select>
   );

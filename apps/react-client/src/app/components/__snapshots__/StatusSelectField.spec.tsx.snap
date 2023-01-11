@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders a Completed state 1`] = `
+<DocumentFragment>
+  <select>
+    <option>
+      Unassigned
+    </option>
+    <option
+      value="true"
+    >
+      Completed
+    </option>
+  </select>
+</DocumentFragment>
+`;
+
+exports[`renders a Pending state 1`] = `[Function]`;
+
+exports[`renders an Assigned state 1`] = `
+<DocumentFragment>
+  <select>
+    <option>
+      Pending
+    </option>
+    <option
+      value="true"
+    >
+      Completed
+    </option>
+  </select>
+</DocumentFragment>
+`;
