@@ -29,8 +29,6 @@ export function TicketDetailsPage() {
     <div>
       <h2>Ticket Details</h2>
 
-      {/* I like related conditionals at the same level. */}
-
       {fetchingTicket && <h2>Fetching Ticket...</h2>}
 
       {!fetchingTicket && !ticket && <h2>Ticket Not Found</h2>}

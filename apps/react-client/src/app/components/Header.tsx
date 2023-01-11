@@ -1,3 +1,3 @@
 export function Header() {
-  return <h1>Ticketing App</h1>;
+  return <h1>ACME Ticketing App</h1>;
 }

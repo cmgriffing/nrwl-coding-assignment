@@ -1,16 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Ticket } from '@acme/shared-models';
-import { CreateTicketForm } from '../components/CreateTicketForm';
-import { useFetchedUsers } from '../hooks/useFetchedUsers';
 
 // I would prefer to set up some path aliases, but it seemed out of scope for this exercise
 import { TicketService } from '../services/ticket.service';
+import { CreateTicketForm } from '../components/CreateTicketForm';
 import { TicketsListItem } from '../components/TicketsListItem';
+import { useFetchedUsers } from '../hooks/useFetchedUsers';
+
+import styles from './TicketsPage.module.css';
+
+enum StatusSearchParam {
+  Completed = 'completed',
+  Pending = 'pending',
+}
 
 export function TicketsPage() {
+  const [params, setSearchParams] = useSearchParams();
+  const [users] = useFetchedUsers();
+
+  // It could make sense to group these together into a reducer.
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [fetchingTickets, setFetchingTickets] = useState(true);
-  const [users] = useFetchedUsers();
+  const [filteredTickets, setFilteredTickets] = useState(tickets);
+  const [statusFilter, setStatusFilter] = useState<StatusSearchParam>();
+
   const ticketService = useRef(new TicketService()).current;
 
   useEffect(() => {
@@ -24,11 +38,33 @@ export function TicketsPage() {
       .finally(() => setFetchingTickets(false));
   }, []);
 
+  useEffect(() => {
+    const status = params.get('status');
+    if (status === StatusSearchParam.Completed) {
+      setStatusFilter(StatusSearchParam.Completed);
+      setFilteredTickets(tickets.filter(({ completed }) => completed));
+    } else if (status === StatusSearchParam.Pending) {
+      setStatusFilter(StatusSearchParam.Pending);
+      setFilteredTickets(tickets.filter(({ completed }) => !completed));
+    } else {
+      setStatusFilter(undefined);
+      setFilteredTickets(tickets);
+    }
+  }, [tickets, params]);
+
+  const updateStatusFilter = useCallback<
+    React.ChangeEventHandler<HTMLInputElement>
+  >((event) => {
+    const status = event.currentTarget.value;
+    if (!status) {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ status }, { replace: true });
+    }
+  }, []);
+
   return (
     <div>
-      <div className="row">
-        <h2>Tickets</h2>
-      </div>
       <div>
         <h3>Create New Ticket</h3>
         <CreateTicketForm
@@ -50,52 +86,95 @@ export function TicketsPage() {
       </div>
       {fetchingTickets && <h3>Fetching tickets...</h3>}
       {!fetchingTickets && (
-        <table>
-          <thead>
-            <th>ID</th>
-            <th>Description</th>
-            <th>Assignee</th>
-            <th>Completed</th>
-            <th></th>
-          </thead>
-          <tbody>
-            {tickets.map((ticket) => (
-              <TicketsListItem
-                users={users}
-                ticket={ticket}
-                assigneeChanged={async (newAssigneeId) => {
-                  const oldAssigneeId = ticket.assigneeId;
-                  ticket.assigneeId = newAssigneeId;
-                  setTickets([...tickets]);
-                  await ticketService
-                    .assignTicket(ticket.id, newAssigneeId)
-                    .catch(() => {
-                      // reset assignee
-                      ticket.assigneeId = oldAssigneeId;
+        <>
+          <h3>Tickets</h3>
+          <div>
+            <div className="row">
+              <label className={styles['radio']}>
+                <input
+                  type="radio"
+                  name="status"
+                  onChange={updateStatusFilter}
+                  value={undefined}
+                  checked={!statusFilter}
+                />
+                All
+              </label>
+
+              <label className={styles['radio']}>
+                <input
+                  type="radio"
+                  name="status"
+                  value={StatusSearchParam.Completed}
+                  checked={statusFilter === StatusSearchParam.Completed}
+                  onChange={updateStatusFilter}
+                />
+                Completed
+              </label>
+
+              <label className={styles['radio']}>
+                <input
+                  type="radio"
+                  name="status"
+                  value={StatusSearchParam.Pending}
+                  checked={statusFilter === StatusSearchParam.Pending}
+                  onChange={updateStatusFilter}
+                />
+                Pending
+              </label>
+            </div>
+          </div>
+
+          {filteredTickets.length === 0 && <h2>No Tickets found.</h2>}
+          {filteredTickets.length > 0 && (
+            <table border={0} cellSpacing={0} cellPadding={0}>
+              <thead>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Assignee</th>
+                <th>Completed</th>
+                <th></th>
+              </thead>
+              <tbody>
+                {filteredTickets.map((ticket) => (
+                  <TicketsListItem
+                    users={users}
+                    ticket={ticket}
+                    assigneeChanged={async (newAssigneeId) => {
+                      const oldAssigneeId = ticket.assigneeId;
+                      ticket.assigneeId = newAssigneeId;
                       setTickets([...tickets]);
-                      // show toast error?
-                    });
-                }}
-                statusChanged={async (newCompleted) => {
-                  const oldCompleted = ticket.completed;
-                  ticket.completed = newCompleted;
-                  setTickets([...tickets]);
-                  let request;
-                  if (!newCompleted) {
-                    request = ticketService.reopenTicket(ticket.id);
-                  } else {
-                    request = ticketService.completeTicket(ticket.id);
-                  }
-                  await request.catch(() => {
-                    ticket.completed = oldCompleted;
-                    setTickets([...tickets]);
-                    // show toast notification
-                  });
-                }}
-              />
-            ))}
-          </tbody>
-        </table>
+                      await ticketService
+                        .assignTicket(ticket.id, newAssigneeId)
+                        .catch(() => {
+                          // reset assignee
+                          ticket.assigneeId = oldAssigneeId;
+                          setTickets([...tickets]);
+                          // show toast error?
+                        });
+                    }}
+                    statusChanged={async (newCompleted) => {
+                      const oldCompleted = ticket.completed;
+                      ticket.completed = newCompleted;
+                      setTickets([...tickets]);
+                      let request;
+                      if (!newCompleted) {
+                        request = ticketService.reopenTicket(ticket.id);
+                      } else {
+                        request = ticketService.completeTicket(ticket.id);
+                      }
+                      await request.catch(() => {
+                        ticket.completed = oldCompleted;
+                        setTickets([...tickets]);
+                        // show toast notification
+                      });
+                    }}
+                  />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   );

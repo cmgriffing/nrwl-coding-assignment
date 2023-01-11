@@ -1,5 +1,25 @@
 /* Global styles */
 
+h3 {
+  border-top: thin solid #333;
+  padding-top: 8px;
+}
+
+th {
+  text-align: left;
+}
+
+td,
+th {
+  padding: 4px 8px;
+  border: none;
+  border-collapse: collapse;
+}
+
+tr:nth-child(even) {
+  background: #eee;
+}
+
 /* Utility classes */
 .row {
   display: flex;
