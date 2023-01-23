@@ -34,6 +34,7 @@ export function TicketsPage() {
       .then(setTickets)
       .catch(() => {
         // maybe spawn a toast notification of the failure
+        alert('Failure to fetch tickets.');
       })
       .finally(() => setFetchingTickets(false));
   }, []);

@@ -17,7 +17,10 @@ export function useFetchedUsers(): [
     userService
       .getUsers()
       .then((fetchedTicketsResponse) => fetchedTicketsResponse?.data)
-      .then(setUsers);
+      .then(setUsers)
+      .catch(() => {
+        alert('Failure to fetch users.');
+      });
   }, []);
 
   return [users, setUsers];

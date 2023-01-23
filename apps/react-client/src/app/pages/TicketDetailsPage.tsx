@@ -51,7 +51,7 @@ export function TicketDetailsPage() {
                       // reset assignee
                       ticket.assigneeId = oldAssigneeId;
                       setTicket({ ...ticket });
-                      // show toast error?
+                      alert('Failure to fetch tickets.');
                     });
                 }}
               />
