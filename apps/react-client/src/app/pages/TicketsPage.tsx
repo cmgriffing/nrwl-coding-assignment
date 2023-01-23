@@ -14,7 +14,10 @@ import { useFetchedUsers } from '../hooks/useFetchedUsers';
 
 import styles from './TicketsPage.module.css';
 
-type TicketsPageSearchParams = Record<string, string | string[]>;
+interface TicketsPageSearchParams {
+  status?: string;
+  search?: string;
+}
 
 enum StatusSearchParam {
   Completed = 'completed',
@@ -83,7 +86,7 @@ export function TicketsPage() {
       if (status) {
         newSearchParams['status'] = status;
       }
-      setSearchParams(newSearchParams, { replace: true });
+      setSearchParams({ ...newSearchParams }, { replace: true });
     },
     [params]
   );
