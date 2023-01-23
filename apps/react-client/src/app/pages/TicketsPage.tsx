@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  URLSearchParamsInit,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import { Ticket } from '@acme/shared-models';
 
 // I would prefer to set up some path aliases, but it seemed out of scope for this exercise
@@ -10,6 +14,8 @@ import { useFetchedUsers } from '../hooks/useFetchedUsers';
 
 import styles from './TicketsPage.module.css';
 
+type TicketsPageSearchParams = Record<string, string | string[]>;
+
 enum StatusSearchParam {
   Completed = 'completed',
   Pending = 'pending',
@@ -17,6 +23,8 @@ enum StatusSearchParam {
 
 export function TicketsPage() {
   const [params, setSearchParams] = useSearchParams();
+  const status = params.get('status') || '';
+  const searchText = params.get('search') || '';
   const [users] = useFetchedUsers();
 
   // It could make sense to group these together into a reducer.
@@ -41,28 +49,44 @@ export function TicketsPage() {
 
   useEffect(() => {
     const status = params.get('status');
+    const searchText = params.get('search');
+
+    let newFilteredTickets = tickets;
     if (status === StatusSearchParam.Completed) {
       setStatusFilter(StatusSearchParam.Completed);
-      setFilteredTickets(tickets.filter(({ completed }) => completed));
+      newFilteredTickets = tickets.filter(({ completed }) => completed);
     } else if (status === StatusSearchParam.Pending) {
       setStatusFilter(StatusSearchParam.Pending);
-      setFilteredTickets(tickets.filter(({ completed }) => !completed));
+      newFilteredTickets = tickets.filter(({ completed }) => !completed);
     } else {
       setStatusFilter(undefined);
-      setFilteredTickets(tickets);
     }
+
+    if (searchText) {
+      newFilteredTickets = newFilteredTickets.filter((ticket) => {
+        return ticket.description.indexOf(searchText) > -1;
+      });
+    }
+
+    setFilteredTickets(newFilteredTickets);
   }, [tickets, params]);
 
   const updateStatusFilter = useCallback<
     React.ChangeEventHandler<HTMLInputElement>
-  >((event) => {
-    const status = event.currentTarget.value;
-    if (!status) {
-      setSearchParams({}, { replace: true });
-    } else {
-      setSearchParams({ status }, { replace: true });
-    }
-  }, []);
+  >(
+    (event) => {
+      const status = event.currentTarget.value;
+      const newSearchParams: TicketsPageSearchParams = {};
+      if (searchText) {
+        newSearchParams['search'] = searchText;
+      }
+      if (status) {
+        newSearchParams['status'] = status;
+      }
+      setSearchParams(newSearchParams, { replace: true });
+    },
+    [params]
+  );
 
   return (
     <div>
@@ -122,6 +146,23 @@ export function TicketsPage() {
                   onChange={updateStatusFilter}
                 />
                 Pending
+              </label>
+            </div>
+            <div className="row">
+              <label>
+                Search{' '}
+                <input
+                  name="description-search"
+                  value={searchText}
+                  onInput={(event) => {
+                    setSearchParams(
+                      { status, search: event.currentTarget.value },
+                      {
+                        replace: true,
+                      }
+                    );
+                  }}
+                />
               </label>
             </div>
           </div>
